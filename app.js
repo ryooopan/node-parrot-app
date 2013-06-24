@@ -30,21 +30,37 @@ if ('development' == app.get('env')) {
 app.get('/', routes.index);
 app.get('/users', user.list);
 
+/*
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
 });
-
-
-// socket
-/*
-var io = require('socket.io').listen(app);
-io.sockets.on('connection', function (socket) {
-  socket.on('msg send', function (msg) {
-    socket.emit('msg push', msg);
-    socket.broadcast.emit('msg push', msg);
-  });
-  socket.on('disconnect', function() {
-    log('disconnected');
-  });
-});
 */
+
+var server = http.createServer(app);
+var socketio = require('socket.io');
+var io = socketio.listen(server);
+
+server.listen(app.get('port'), function(){
+  console.log("server listening on port " + app.get('port'));
+});
+
+io.sockets.on('connection', function (socket) { 
+  var address = socket.handshake.address;
+  console.log("connected from " + address.address + ":" + address.port);
+  
+  socket.on('msg', function(data){
+    console.log(data);
+    var date = new Date();
+    io.sockets.emit("msg", {date : date, message : data.message});
+  });
+  
+  socket.on('disconnect', function () {
+    console.log("disconnectted from " + address.address + ":" + address.port) 
+  });
+  
+});
+
+io.configure(function () { 
+  io.set("transports", ["xhr-polling"]); 
+  io.set("polling duration", 10); 
+});

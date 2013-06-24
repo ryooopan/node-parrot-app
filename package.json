@@ -8,7 +8,7 @@
   "dependencies": {
     "express": "3.2.5",
     "jade": "*",
-    "websocket.io": "*"
+    "socket.io": "*"
   },
   "engines": {
     "node": "0.10.12",
