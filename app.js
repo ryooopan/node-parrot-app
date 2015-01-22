@@ -44,6 +44,13 @@ server.listen(app.get('port'), function(){
   console.log("server listening on port " + app.get('port'));
 });
 
+var socks = []
+var body = '';
+fs.readFile('index.html', 'utf8', function(err, data) {
+  body = data;
+  //console.log(body);
+});
+
 io.sockets.on('connection', function (socket) { 
   var address = socket.handshake.address;
   console.log("connected from " + address.address + ":" + address.port);
@@ -52,6 +59,25 @@ io.sockets.on('connection', function (socket) {
     console.log(data);
     var date = new Date();
     io.sockets.emit("msg", {date : date, message : data.message});
+  });
+
+  socket.emit('refresh', {body: body});
+
+  socket.on('refresh', function (body_) {
+    console.log('new body');
+    body = body_;
+  });
+
+  socket.on('change', function (op) {
+    console.log(op);
+    if (op.origin == '+input' || op.origin == 'paste' || op.origin == '+delete') {
+      socket.broadcast.emit('change', op);
+    }
+  });
+
+  socket.on('cursor', function (pos) {
+    console.log(pos);
+    socket.broadcast.emit('cursor', pos);
   });
   
   socket.on('disconnect', function () {
